@@ -39,21 +39,22 @@ Build a React application that interacts with user data from an external API. Th
 
 ## 📤 Submission Requirements
 
-1. **Branch Creation**
+1. **Repository Setup**
 
-   - Create a new branch following the format: `<username>/sope-task`
-   - Do NOT push directly to the main branch
+   - Fork this repository to your GitHub account
+   - Clone your forked repository locally
+   - Do NOT submit pull requests to the original repository
 
 2. **Time Limit**
 
    - You have 4 hours to complete the challenge
    - Start timing from when you begin the implementation
-   - Push your completed work to your branch when finished
+   - Push your completed work to your forked repository when finished
 
 3. **Completion Notice**
    - After pushing your implementation
    - Notify the reviewing team that you've completed the task
-   - Include your branch name in the notification
+   - Include your forked repository URL in the notification
 
 ## 🤝 Good Luck!
 
