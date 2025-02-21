@@ -13,8 +13,15 @@
 
 .user-card h3 {
   color: var(--text-primary);
-  margin: 0 0 var(--spacing-md);
+  margin: 0;
   font-size: 1.25rem;
+}
+
+.username {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 0 0 var(--spacing-md);
+  font-style: italic;
 }
 
 .user-card p {

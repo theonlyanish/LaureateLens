@@ -12,6 +12,7 @@ const UserCard = ({ user }: UserCardProps) => {
   return (
     <div className={styles['user-card']}>
       <h3>{user.name}</h3>
+      <div className={styles.username}>@{user.username}</div>
       <p>
         <span className={styles.icon}>📧</span>
         {user.email}
