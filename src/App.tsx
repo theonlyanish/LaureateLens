@@ -1,18 +1,17 @@
 import './App.css';
-import reactLogo from './assets/react.svg';
+import Users from './components/Users';
 
+// Main App component
 function App() {
   return (
-    <>
-      <div>
-        <img src={reactLogo} className="logo react" alt="React logo" />
-      </div>
-      <h1>Welcome,</h1>
-      <div className="card">
-        <p>Please reference the README.md file for the task instructions.</p>
-      </div>
-      <p className="read-the-docs">Good Luck</p>
-    </>
+    <div className="app">
+      <header className="app-header">
+        <h1>User Management System</h1>
+      </header>
+      <main>
+        <Users />
+      </main>
+    </div>
   );
 }
 
