@@ -1,20 +1,11 @@
+import { User } from '../services/api';
 
-// User card component for displaying user information
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  website: string;
-  company: {
-    name: string;
-  };
-}
-
+// component props
 interface UserCardProps {
   user: User;
 }
 
+// User card component for displaying user information
 const UserCard = ({ user }: UserCardProps) => {
   return (
     <div className="user-card">
