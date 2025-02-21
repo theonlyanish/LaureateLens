@@ -4,6 +4,7 @@ import { useDebounce } from '../hooks/useDebounce';
 import UserCard from './UserCard';
 import SearchBar from './SearchBar';
 import SortControls from './SortControls';
+import styles from '../styles/Users.module.css';
 
 // Interface for sorting configuration
 interface SortConfig {
@@ -35,6 +36,13 @@ const Users = () => {
       setRetryCount(0);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch users');
+      if (retryCount < 3) {
+        const timeout = Math.pow(2, retryCount) * 1000;
+        setTimeout(() => {
+          setRetryCount(prev => prev + 1);
+          loadUsers();
+        }, timeout);
+      }
     } finally {
       setLoading(false);
     }
@@ -76,8 +84,8 @@ const Users = () => {
   };
 
   return (
-    <div className="users-container">
-      <div className="users-controls">
+    <div className={styles['users-container']}>
+      <div className={styles['users-controls']}>
         <SearchBar onSearch={handleSearch} />
         <SortControls 
           onSort={handleSort} 
@@ -85,7 +93,7 @@ const Users = () => {
         />
         <button 
           onClick={() => loadUsers()}
-          className="refresh-button"
+          className={styles['refresh-button']}
           disabled={loading}
         >
           {loading ? 'Refreshing...' : 'Refresh'}
@@ -93,22 +101,22 @@ const Users = () => {
       </div>
 
       {error && (
-        <div className="error-message">
+        <div className={styles['error-message']}>
           <p>Error: {error}</p>
           {retryCount > 0 && <p>Retrying... (Attempt {retryCount}/3)</p>}
         </div>
       )}
 
       {loading ? (
-        <div className="loading">Loading users...</div>
+        <div className={styles.loading}>Loading users...</div>
       ) : (
-        <div className="users-grid">
+        <div className={styles['users-grid']}>
           {filteredAndSortedUsers.length > 0 ? (
             filteredAndSortedUsers.map(user => (
               <UserCard key={user.id} user={user} />
             ))
           ) : (
-            <p className="no-results">
+            <p className={styles['no-results']}>
               {searchTerm ? 'No users found matching your search.' : 'No users available.'}
             </p>
           )}
