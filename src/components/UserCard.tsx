@@ -1,4 +1,5 @@
 import { User } from '../services/api';
+import styles from '../styles/UserCard.module.css';
 
 // component props
 interface UserCardProps {
@@ -8,12 +9,24 @@ interface UserCardProps {
 // User card component for displaying user information
 const UserCard = ({ user }: UserCardProps) => {
   return (
-    <div className="user-card">
+    <div className={styles['user-card']}>
       <h3>{user.name}</h3>
-      <p>Email: {user.email}</p>
-      <p>Phone: {user.phone}</p>
-      <p>Website: {user.website}</p>
-      <p>Company: {user.company.name}</p>
+      <p>
+        <span className={styles.icon}>📧</span>
+        {user.email}
+      </p>
+      <p>
+        <span className={styles.icon}>📱</span>
+        {user.phone}
+      </p>
+      <p>
+        <span className={styles.icon}>🌐</span>
+        {user.website}
+      </p>
+      <p>
+        <span className={styles.icon}>🏢</span>
+        {user.company.name}
+      </p>
     </div>
   );
 };
