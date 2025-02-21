@@ -12,6 +12,7 @@ body {
   background-color: var(--background-color);
   color: var(--text-primary);
   line-height: 1.5;
+  transition: background-color var(--transition-normal), color var(--transition-normal);
 }
 
 .app {
@@ -19,10 +20,12 @@ body {
 }
 
 .app-header {
-  background-color: var(--primary-color);
-  color: white;
+  background-color: var(--header-background);
+  color: var(--text-primary);
   padding: var(--spacing-lg) var(--spacing-xl);
   margin-bottom: var(--spacing-lg);
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color var(--transition-normal);
 }
 
 .app-header h1 {
@@ -44,8 +47,7 @@ body {
 #root {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  padding: var(--spacing-md);
 }
 
 .logo {

@@ -2,19 +2,23 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { fetchUsers, User } from '../services/api';
 import { useDebounce } from '../hooks/useDebounce';
 import UserCard from './UserCard';
-import SearchBar from './SearchBar';
-import SortControls from './SortControls';
-import styles from '../styles/Users.module.css';
+import Box from '@mui/material/Box';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import ButtonGroup from '@mui/material/ButtonGroup';
+import Grid from '@mui/material/Grid';
+import Alert from '@mui/material/Alert';
+import CircularProgress from '@mui/material/CircularProgress';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
-// Interface for sorting configuration
 interface SortConfig {
   field: 'name' | 'email';
   direction: 'asc' | 'desc';
 }
 
-// User container component
 const Users = () => {
-  // State management for users and UI
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,21 +26,17 @@ const Users = () => {
   const [sortConfig, setSortConfig] = useState<SortConfig>({ field: 'name', direction: 'asc' });
   const [retryCount, setRetryCount] = useState(0);
 
-  // Debounce search term to prevent excessive filtering
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-  // Load users with retry mechanism
   const loadUsers = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const data = await fetchUsers();
       setUsers(data);
-      // Reset retry count on successful load
       setRetryCount(0);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch users');
-      // Implement exponential backoff for retries
       if (retryCount < 3) {
         const timeout = Math.pow(2, retryCount) * 1000;
         setTimeout(() => {
@@ -49,21 +49,17 @@ const Users = () => {
     }
   }, [retryCount]);
 
-  //Load users
   useEffect(() => {
     loadUsers();
   }, [loadUsers]);
 
-  // Memoized filtered and sorted users
   const filteredAndSortedUsers = useMemo(() => {
-    // First, filter users based on search term
     const filtered = users.filter(user =>
       user.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
       user.company.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
     );
 
-    // Then sort the filtered results
     return [...filtered].sort((a, b) => {
       const compareResult = a[sortConfig.field].toLowerCase()
         .localeCompare(b[sortConfig.field].toLowerCase());
@@ -71,12 +67,6 @@ const Users = () => {
     });
   }, [users, debouncedSearchTerm, sortConfig]);
 
-  // Handler for search input
-  const handleSearch = (term: string) => {
-    setSearchTerm(term);
-  };
-
-  // Handler for sorting
   const handleSort = (field: 'name' | 'email') => {
     setSortConfig(prev => ({
       field,
@@ -85,46 +75,105 @@ const Users = () => {
   };
 
   return (
-    <div className={styles['users-container']}>
-      <div className={styles['users-controls']}>
-        <SearchBar onSearch={handleSearch} />
-        <SortControls 
-          onSort={handleSort} 
-          currentSort={sortConfig}
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <Box sx={{ 
+        display: 'flex', 
+        gap: 2, 
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <TextField
+          size="small"
+          variant="outlined"
+          placeholder="Search users by name, email, or company..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          sx={{ 
+            flex: 1,
+            minWidth: 250,
+            maxWidth: 500,
+            '& .MuiOutlinedInput-root': {
+              borderRadius: 2
+            }
+          }}
         />
-        <button 
+        <ButtonGroup 
+          variant="outlined"
+          size="small"
+          sx={{ 
+            '& .MuiButton-root': {
+              borderRadius: 2,
+              textTransform: 'none',
+              px: 3
+            }
+          }}
+        >
+          <Button
+            onClick={() => handleSort('name')}
+            variant={sortConfig.field === 'name' ? 'contained' : 'outlined'}
+            endIcon={sortConfig.field === 'name' && (
+              sortConfig.direction === 'asc' ? <ArrowUpwardIcon /> : <ArrowDownwardIcon />
+            )}
+          >
+            Name
+          </Button>
+          <Button
+            onClick={() => handleSort('email')}
+            variant={sortConfig.field === 'email' ? 'contained' : 'outlined'}
+            endIcon={sortConfig.field === 'email' && (
+              sortConfig.direction === 'asc' ? <ArrowUpwardIcon /> : <ArrowDownwardIcon />
+            )}
+          >
+            Email
+          </Button>
+        </ButtonGroup>
+        <Button
+          variant="contained"
+          size="small"
+          startIcon={<RefreshIcon />}
           onClick={() => loadUsers()}
-          className={styles['refresh-button']}
           disabled={loading}
+          sx={{ 
+            borderRadius: 2,
+            textTransform: 'none',
+            px: 3
+          }}
         >
           {loading ? 'Refreshing...' : 'Refresh'}
-        </button>
-      </div>
+        </Button>
+      </Box>
 
       {error && (
-        <div className={styles['error-message']}>
-          <p>Error: {error}</p>
-          {retryCount > 0 && <p>Retrying... (Attempt {retryCount}/3)</p>}
-        </div>
+        <Alert severity="error" sx={{ borderRadius: 2 }}>
+          <div>Error: {error}</div>
+          {retryCount > 0 && <div>Retrying... (Attempt {retryCount}/3)</div>}
+        </Alert>
       )}
 
       {loading ? (
-        <div className={styles.loading}>Loading users...</div>
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+          <CircularProgress />
+        </Box>
       ) : (
-        <div className={styles['users-grid']}>
+        <Grid container spacing={3}>
           {filteredAndSortedUsers.length > 0 ? (
             filteredAndSortedUsers.map(user => (
-              <UserCard key={user.id} user={user} />
+              <Grid item xs={12} sm={6} md={4} key={user.id}>
+                <UserCard user={user} />
+              </Grid>
             ))
           ) : (
-            <p className={styles['no-results']}>
-              {searchTerm ? 'No users found matching your search.' : 'No users available.'}
-            </p>
+            <Grid item xs={12}>
+              <Box sx={{ textAlign: 'center', color: 'text.secondary', py: 4 }}>
+                {searchTerm ? 'No users found matching your search.' : 'No users available.'}
+              </Box>
+            </Grid>
           )}
-        </div>
+        </Grid>
       )}
-    </div>
+    </Box>
   );
 };
 
-export default Users; 
+export default Users;
