@@ -1,3 +1,5 @@
+import styles from '../styles/Controls.module.css';
+
 // Type for sorting fields
 type SortField = 'name' | 'email';
 
@@ -22,16 +24,16 @@ const SortControls = ({ onSort, currentSort }: SortControlsProps) => {
   };
 
   return (
-    <div className="sort-controls">
+    <div className={styles['sort-controls']}>
       <button 
         onClick={() => onSort('name')} 
-        className={`sort-button ${currentSort.field === 'name' ? 'active' : ''}`}
+        className={`${styles['sort-button']} ${currentSort.field === 'name' ? styles.active : ''}`}
       >
         Sort by Name{getSortIndicator('name')}
       </button>
       <button 
         onClick={() => onSort('email')} 
-        className={`sort-button ${currentSort.field === 'email' ? 'active' : ''}`}
+        className={`${styles['sort-button']} ${currentSort.field === 'email' ? styles.active : ''}`}
       >
         Sort by Email{getSortIndicator('email')}
       </button>
