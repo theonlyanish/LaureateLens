@@ -1,4 +1,5 @@
 import { User } from '../services/api';
+import { formatPhoneNumber } from '../utils/formatPhoneNumber';
 import styles from '../styles/UserCard.module.css';
 
 // component props
@@ -17,7 +18,7 @@ const UserCard = ({ user }: UserCardProps) => {
       </p>
       <p>
         <span className={styles.icon}>📱</span>
-        {user.phone}
+        {formatPhoneNumber(user.phone)}
       </p>
       <p>
         <span className={styles.icon}>🌐</span>
