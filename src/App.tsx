@@ -29,6 +29,10 @@ function App() {
         light: '#64b5f6',
         dark: '#1976d2',
       },
+      background: {
+        default: darkMode ? '#121212' : '#ffffff',
+        paper: darkMode ? '#1e1e1e' : '#ffffff',
+      },
     },
     components: {
       MuiAppBar: {
@@ -48,8 +52,14 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ minHeight: '100vh' }}>
-        <AppBar position="static">
+      <Box sx={{ 
+        minHeight: '100vh',
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center'
+      }}>
+        <AppBar position="static" sx={{ width: '100%' }}>
           <Toolbar sx={{ justifyContent: 'space-between' }}>
             <Box sx={{ flex: 1 }} />
             <Typography 

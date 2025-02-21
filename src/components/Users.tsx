@@ -103,18 +103,23 @@ const Users = () => {
             maxWidth: '400px',
             flex: '0 1 auto',
             '& .MuiOutlinedInput-root': {
-              backgroundColor: '#fff',
+              backgroundColor: (theme) => 
+                theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : '#fff',
               borderRadius: '4px',
+              color: (theme) => 
+                theme.palette.mode === 'dark' ? '#fff' : 'inherit',
               '& fieldset': {
-                borderColor: '#2196f3',
+                borderColor: '#1976d2',
               },
               '&:hover fieldset': {
-                borderColor: '#64b5f6',
+                borderColor: '#1976d2',
               },
-              '&.Mui-focused fieldset': {
-                borderColor: '#2196f3',
-              },
-            }
+            },
+            '& .MuiInputBase-input::placeholder': {
+              color: (theme) => 
+                theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
+              opacity: 1,
+            },
           }}
         />
         <ButtonGroup variant="contained">
