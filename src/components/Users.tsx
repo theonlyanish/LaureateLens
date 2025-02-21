@@ -36,6 +36,7 @@ const Users = () => {
       setRetryCount(0);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch users');
+      // Implement exponential backoff for retries
       if (retryCount < 3) {
         const timeout = Math.pow(2, retryCount) * 1000;
         setTimeout(() => {
