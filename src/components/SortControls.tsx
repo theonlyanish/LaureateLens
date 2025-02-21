@@ -1,21 +1,39 @@
-
 // Type for sorting fields
 type SortField = 'name' | 'email';
+
+// Interface for sort configuration
+interface SortConfig {
+  field: SortField;
+  direction: 'asc' | 'desc';
+}
 
 // Interface for sort controls props
 interface SortControlsProps {
   onSort: (field: SortField) => void;
+  currentSort: SortConfig;
 }
 
 // Sort controls component
-const SortControls = ({ onSort }: SortControlsProps) => {
+const SortControls = ({ onSort, currentSort }: SortControlsProps) => {
+  // Helper function to render sort direction indicator for asc or desc
+  const getSortIndicator = (field: SortField) => {
+    if (currentSort.field !== field) return null;
+    return currentSort.direction === 'asc' ? ' ↑' : ' ↓';
+  };
+
   return (
     <div className="sort-controls">
-      <button onClick={() => onSort('name')} className="sort-button">
-        Sort by Name
+      <button 
+        onClick={() => onSort('name')} 
+        className={`sort-button ${currentSort.field === 'name' ? 'active' : ''}`}
+      >
+        Sort by Name{getSortIndicator('name')}
       </button>
-      <button onClick={() => onSort('email')} className="sort-button">
-        Sort by Email
+      <button 
+        onClick={() => onSort('email')} 
+        className={`sort-button ${currentSort.field === 'email' ? 'active' : ''}`}
+      >
+        Sort by Email{getSortIndicator('email')}
       </button>
     </div>
   );
