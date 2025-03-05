@@ -1,20 +1,17 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { fetchLaureates, Laureate } from '../services/api';
 import { useDebounce } from '../hooks/useDebounce';
 import LaureateCard from './LaureateCard';
+import LaureateListItem from './LaureateListItem';
+import LaureateDialog from './LaureateDialog';
+import FilterBar, { Filters } from './FilterBar';
 import Box from '@mui/material/Box';
-import TextField from '@mui/material/TextField';
-import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
+import List from '@mui/material/List';
 import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import Dialog from '@mui/material/Dialog';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
-import IconButton from '@mui/material/IconButton';
-import CloseIcon from '@mui/icons-material/Close';
 import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
 
 const Laureates = () => {
   const [laureates, setLaureates] = useState<Laureate[]>([]);
@@ -25,9 +22,60 @@ const Laureates = () => {
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const ITEMS_PER_PAGE = 25;
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [filters, setFilters] = useState<Filters>({
+    categories: [],
+    yearRange: [1901, new Date().getFullYear()],
+    country: '',
+    sortBy: 'name',
+    sortDirection: 'asc'
+  });
 
+  const ITEMS_PER_PAGE = 25;
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+  // Extract unique categories and countries from laureates
+  const categories = useMemo(() => {
+    const uniqueCategories = new Set<string>();
+    laureates.forEach(laureate => {
+      laureate.nobelPrizes.forEach(prize => {
+        if (prize.category?.en) {
+          uniqueCategories.add(prize.category.en);
+        }
+      });
+    });
+    return Array.from(uniqueCategories).sort();
+  }, [laureates]);
+
+  const countries = useMemo(() => {
+    const uniqueCountries = new Set<string>();
+    laureates.forEach(laureate => {
+      if (laureate.birth?.place?.country?.en) {
+        uniqueCountries.add(laureate.birth.place.country.en);
+      }
+    });
+    return Array.from(uniqueCountries).sort();
+  }, [laureates]);
+
+  // Get the year range from the laureates
+  const yearRange = useMemo(() => {
+    let minYear = 1901;
+    let maxYear = new Date().getFullYear();
+    
+    if (laureates.length > 0) {
+      laureates.forEach(laureate => {
+        laureate.nobelPrizes.forEach(prize => {
+          const year = parseInt(prize.awardYear);
+          if (!isNaN(year)) {
+            minYear = Math.min(minYear, year);
+            maxYear = Math.max(maxYear, year);
+          }
+        });
+      });
+    }
+    
+    return [minYear, maxYear] as [number, number];
+  }, [laureates]);
 
   const loadLaureates = useCallback(async (reset: boolean = false) => {
     if (reset) {
@@ -68,12 +116,51 @@ const Laureates = () => {
     loadLaureates();
   };
 
-  const filteredLaureates = laureates.filter(laureate => 
-    laureate.knownName?.en?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-    laureate.nobelPrizes?.some(prize => 
-      prize.category?.en?.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
-    )
-  );
+  const filteredAndSortedLaureates = useMemo(() => {
+    return laureates
+      .filter(laureate => {
+        // Name and thesis search
+        const searchTermLower = debouncedSearchTerm.toLowerCase();
+        const nameMatch = laureate.knownName?.en
+          ?.toLowerCase()
+          .includes(searchTermLower);
+        const thesisMatch = laureate.nobelPrizes.some(prize =>
+          prize.motivation?.en?.toLowerCase().includes(searchTermLower)
+        );
+
+        // Category filter
+        const categoryMatch = filters.categories.length === 0 || 
+          laureate.nobelPrizes.some(prize => 
+            filters.categories.includes(prize.category?.en || ''));
+
+        // Year range filter
+        const yearMatch = laureate.nobelPrizes.some(prize => {
+          const year = parseInt(prize.awardYear);
+          return year >= filters.yearRange[0] && year <= filters.yearRange[1];
+        });
+
+        // Country filter
+        const countryMatch = !filters.country || 
+          laureate.birth?.place?.country?.en === filters.country;
+
+        return (nameMatch || thesisMatch) && categoryMatch && yearMatch && countryMatch;
+      })
+      .sort((a, b) => {
+        if (filters.sortBy === 'name') {
+          const nameA = a.knownName?.en || '';
+          const nameB = b.knownName?.en || '';
+          return filters.sortDirection === 'asc' 
+            ? nameA.localeCompare(nameB)
+            : nameB.localeCompare(nameA);
+        } else { // year
+          const yearA = parseInt(a.nobelPrizes[0]?.awardYear || '0');
+          const yearB = parseInt(b.nobelPrizes[0]?.awardYear || '0');
+          return filters.sortDirection === 'asc' 
+            ? yearA - yearB
+            : yearB - yearA;
+        }
+      });
+  }, [laureates, debouncedSearchTerm, filters]);
 
   if (isInitialLoad) {
     return (
@@ -85,24 +172,17 @@ const Laureates = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-        <TextField
-          fullWidth
-          variant="outlined"
-          placeholder="Search laureates by name or category..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          sx={{ flex: 1, minWidth: 250 }}
-        />
-        <Button
-          variant="contained"
-          startIcon={<RefreshIcon />}
-          onClick={() => loadLaureates(true)}
-          disabled={loading}
-        >
-          {loading ? 'Refreshing...' : 'Refresh'}
-        </Button>
-      </Box>
+      <FilterBar
+        filters={filters}
+        onFiltersChange={setFilters}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        categories={categories}
+        countries={countries}
+        yearRange={yearRange}
+      />
 
       {error && (
         <Alert 
@@ -117,48 +197,61 @@ const Laureates = () => {
         </Alert>
       )}
 
-      <Grid container spacing={3}>
-        {filteredLaureates.map(laureate => (
-          <Grid item xs={12} sm={6} md={4} key={laureate.id}>
-            <LaureateCard 
+      {viewMode === 'grid' ? (
+        <Grid container spacing={3}>
+          {filteredAndSortedLaureates.map(laureate => (
+            <Grid item xs={12} sm={6} md={4} key={laureate.id}>
+              <LaureateCard 
+                laureate={laureate}
+                onSelect={(laureate) => setSelectedLaureate(laureate)}
+              />
+            </Grid>
+          ))}
+        </Grid>
+      ) : (
+        <List sx={{ bgcolor: 'background.paper' }}>
+          {filteredAndSortedLaureates.map(laureate => (
+            <LaureateListItem
+              key={laureate.id}
               laureate={laureate}
               onSelect={(laureate) => setSelectedLaureate(laureate)}
             />
-          </Grid>
-        ))}
-        {filteredLaureates.length === 0 && !loading && (
-          <Grid item xs={12}>
-            <Box sx={{ 
-              textAlign: 'center', 
-              color: 'text.secondary', 
-              py: 4,
-              bgcolor: 'background.paper',
-              borderRadius: 1,
-              boxShadow: 1
-            }}>
-              {searchTerm ? (
-                <>
-                  <Typography variant="h6" gutterBottom>
-                    No laureates found
-                  </Typography>
-                  <Typography variant="body2">
-                    Try adjusting your search terms or clear the search to see all laureates.
-                  </Typography>
-                </>
-              ) : (
-                <>
-                  <Typography variant="h6" gutterBottom>
-                    No laureates available
-                  </Typography>
-                  <Typography variant="body2">
-                    Try refreshing the page or check back later.
-                  </Typography>
-                </>
-              )}
-            </Box>
-          </Grid>
-        )}
-      </Grid>
+          ))}
+        </List>
+      )}
+
+      {filteredAndSortedLaureates.length === 0 && !loading && (
+        <Box sx={{ 
+          textAlign: 'center', 
+          color: 'text.secondary', 
+          py: 4,
+          bgcolor: 'background.paper',
+          borderRadius: 1,
+          boxShadow: 1
+        }}>
+          {searchTerm || Object.values(filters).some(v => 
+            Array.isArray(v) ? v.length > 0 : Boolean(v)
+          ) ? (
+            <>
+              <Typography variant="h6" gutterBottom>
+                No laureates found
+              </Typography>
+              <Typography variant="body2">
+                Try adjusting your search terms or filters to see more results.
+              </Typography>
+            </>
+          ) : (
+            <>
+              <Typography variant="h6" gutterBottom>
+                No laureates available
+              </Typography>
+              <Typography variant="body2">
+                Try refreshing the page or check back later.
+              </Typography>
+            </>
+          )}
+        </Box>
+      )}
 
       {loading && !isInitialLoad && (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
@@ -166,7 +259,7 @@ const Laureates = () => {
         </Box>
       )}
 
-      {hasMore && !loading && filteredLaureates.length > 0 && (
+      {hasMore && !loading && filteredAndSortedLaureates.length > 0 && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
           <Button variant="outlined" onClick={handleLoadMore}>
             Load More
@@ -174,32 +267,10 @@ const Laureates = () => {
         </Box>
       )}
 
-      <Dialog 
-        open={!!selectedLaureate} 
+      <LaureateDialog 
+        laureate={selectedLaureate}
         onClose={() => setSelectedLaureate(null)}
-        maxWidth="md"
-        fullWidth
-      >
-        {selectedLaureate && (
-          <>
-            <DialogTitle>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                {selectedLaureate.knownName?.en || 'Unknown Name'}
-                <IconButton onClick={() => setSelectedLaureate(null)}>
-                  <CloseIcon />
-                </IconButton>
-              </Box>
-            </DialogTitle>
-            <DialogContent>
-              <Box sx={{ py: 2 }}>
-                <Typography variant="body1">
-                  Detailed information about this laureate will be added in the next phase.
-                </Typography>
-              </Box>
-            </DialogContent>
-          </>
-        )}
-      </Dialog>
+      />
     </Box>
   );
 };

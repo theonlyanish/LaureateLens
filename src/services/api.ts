@@ -90,6 +90,10 @@ export interface Laureate {
   wikipedia: {
     english: string;
   };
+  wikidata?: {
+    id: string;
+    url: string;
+  };
   nobelPrizes: NobelPrize[];
   affiliations: Affiliation[];
 }
