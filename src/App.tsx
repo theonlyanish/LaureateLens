@@ -19,11 +19,20 @@ function App() {
     palette: {
       mode,
       primary: {
-        main: '#3b82f6', // Modern blue color
+        main: '#2563eb',
       },
       background: {
         default: mode === 'light' ? '#f8fafc' : '#0a0a0a',
         paper: mode === 'light' ? '#ffffff' : '#1a1a1a',
+      },
+    },
+    components: {
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            textTransform: 'none',
+          },
+        },
       },
     },
   });

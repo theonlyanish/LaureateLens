@@ -75,40 +75,17 @@ const Users = () => {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <Box sx={{ 
-        display: 'flex', 
-        gap: 2, 
-        flexWrap: 'wrap',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
         <TextField
-          size="small"
+          fullWidth
           variant="outlined"
           placeholder="Search users by name, email, or company..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          sx={{ 
-            flex: 1,
-            minWidth: 250,
-            maxWidth: 500,
-            '& .MuiOutlinedInput-root': {
-              borderRadius: 2
-            }
-          }}
+          sx={{ flex: 1, minWidth: 250 }}
         />
-        <ButtonGroup 
-          variant="outlined"
-          size="small"
-          sx={{ 
-            '& .MuiButton-root': {
-              borderRadius: 2,
-              textTransform: 'none',
-              px: 3
-            }
-          }}
-        >
+        <ButtonGroup variant="outlined">
           <Button
             onClick={() => handleSort('name')}
             variant={sortConfig.field === 'name' ? 'contained' : 'outlined'}
@@ -130,22 +107,16 @@ const Users = () => {
         </ButtonGroup>
         <Button
           variant="contained"
-          size="small"
           startIcon={<RefreshIcon />}
           onClick={() => loadUsers()}
           disabled={loading}
-          sx={{ 
-            borderRadius: 2,
-            textTransform: 'none',
-            px: 3
-          }}
         >
           {loading ? 'Refreshing...' : 'Refresh'}
         </Button>
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ borderRadius: 2 }}>
+        <Alert severity="error">
           <div>Error: {error}</div>
           {retryCount > 0 && <div>Retrying... (Attempt {retryCount}/3)</div>}
         </Alert>
