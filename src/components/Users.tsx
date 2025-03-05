@@ -114,8 +114,6 @@ const Users = () => {
           {loading ? 'Refreshing...' : 'Refresh'}
         </Button>
       </Box>
-        </Button>
-      </Box>
 
       {error && (
         <Alert severity="error">
@@ -128,17 +126,10 @@ const Users = () => {
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
           <CircularProgress />
         </Box>
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-          <CircularProgress />
-        </Box>
       ) : (
-        <Grid container spacing={3}>
         <Grid container spacing={3}>
           {filteredAndSortedUsers.length > 0 ? (
             filteredAndSortedUsers.map(user => (
-              <Grid item xs={12} sm={6} md={4} key={user.id}>
-                <UserCard user={user} />
-              </Grid>
               <Grid item xs={12} sm={6} md={4} key={user.id}>
                 <UserCard user={user} />
               </Grid>
@@ -151,9 +142,7 @@ const Users = () => {
             </Grid>
           )}
         </Grid>
-        </Grid>
       )}
-    </Box>
     </Box>
   );
 };
