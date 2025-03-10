@@ -13,15 +13,15 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 
+const ITEMS_PER_PAGE = 24; // Adjust for better grid layout (4x6)
+
 const Laureates = () => {
-  const [laureates, setLaureates] = useState<Laureate[]>([]);
+  const [allLaureates, setAllLaureates] = useState<Laureate[]>([]);
+  const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLaureate, setSelectedLaureate] = useState<Laureate | null>(null);
-  const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [filters, setFilters] = useState<Filters>({
     categories: [],
@@ -31,13 +31,31 @@ const Laureates = () => {
     sortDirection: 'asc'
   });
 
-  const ITEMS_PER_PAGE = 25;
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-  // Extract unique categories and countries from laureates
+  // Load all laureates at once
+  const loadAllLaureates = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Fetch with a large limit to get all laureates
+      const response = await fetchLaureates(0, 1000);
+      setAllLaureates(response.laureates || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch laureates');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadAllLaureates();
+  }, []); // Only load once at component mount
+
+  // Extract unique categories and countries from all laureates
   const categories = useMemo(() => {
     const uniqueCategories = new Set<string>();
-    laureates.forEach(laureate => {
+    allLaureates.forEach(laureate => {
       laureate.nobelPrizes.forEach(prize => {
         if (prize.category?.en) {
           uniqueCategories.add(prize.category.en);
@@ -45,25 +63,25 @@ const Laureates = () => {
       });
     });
     return Array.from(uniqueCategories).sort();
-  }, [laureates]);
+  }, [allLaureates]);
 
   const countries = useMemo(() => {
     const uniqueCountries = new Set<string>();
-    laureates.forEach(laureate => {
+    allLaureates.forEach(laureate => {
       if (laureate.birth?.place?.country?.en) {
         uniqueCountries.add(laureate.birth.place.country.en);
       }
     });
     return Array.from(uniqueCountries).sort();
-  }, [laureates]);
+  }, [allLaureates]);
 
-  // Get the year range from the laureates
+  // Get the year range from all laureates
   const yearRange = useMemo(() => {
     let minYear = 1901;
     let maxYear = new Date().getFullYear();
     
-    if (laureates.length > 0) {
-      laureates.forEach(laureate => {
+    if (allLaureates.length > 0) {
+      allLaureates.forEach(laureate => {
         laureate.nobelPrizes.forEach(prize => {
           const year = parseInt(prize.awardYear);
           if (!isNaN(year)) {
@@ -75,54 +93,21 @@ const Laureates = () => {
     }
     
     return [minYear, maxYear] as [number, number];
-  }, [laureates]);
+  }, [allLaureates]);
 
-  const loadLaureates = useCallback(async (reset: boolean = false) => {
-    if (reset) {
-      setPage(0);
-      setLaureates([]);
-    }
-
-    setLoading(true);
-    setError(null);
-    try {
-      const currentPage = reset ? 0 : page;
-      const response = await fetchLaureates(currentPage * ITEMS_PER_PAGE, ITEMS_PER_PAGE);
-      
-      if (reset) {
-        setLaureates(response.laureates || []);
-      } else {
-        setLaureates(prev => [...prev, ...(response.laureates || [])]);
-      }
-      
-      setHasMore((response.laureates || []).length === ITEMS_PER_PAGE);
-      if (!reset) {
-        setPage(prev => prev + 1);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch laureates');
-      setHasMore(false);
-    } finally {
-      setLoading(false);
-      setIsInitialLoad(false);
-    }
-  }, [page]);
-
-  useEffect(() => {
-    loadLaureates(true);
-  }, [debouncedSearchTerm]);
-
-  const handleLoadMore = () => {
-    loadLaureates();
-  };
-
+  // Filter and sort all laureates
   const filteredAndSortedLaureates = useMemo(() => {
-    return laureates
+    return allLaureates
       .filter(laureate => {
+        // Filter out unknown names
+        if (!laureate.knownName?.en || laureate.knownName.en === 'Unknown Name') {
+          return false;
+        }
+
         // Name and thesis search
         const searchTermLower = debouncedSearchTerm.toLowerCase();
-        const nameMatch = laureate.knownName?.en
-          ?.toLowerCase()
+        const nameMatch = laureate.knownName.en
+          .toLowerCase()
           .includes(searchTermLower);
         const thesisMatch = laureate.nobelPrizes.some(prize =>
           prize.motivation?.en?.toLowerCase().includes(searchTermLower)
@@ -160,9 +145,23 @@ const Laureates = () => {
             : yearB - yearA;
         }
       });
-  }, [laureates, debouncedSearchTerm, filters]);
+  }, [allLaureates, debouncedSearchTerm, filters]);
 
-  if (isInitialLoad) {
+  // Reset display count when filters change
+  useEffect(() => {
+    setDisplayCount(ITEMS_PER_PAGE);
+  }, [debouncedSearchTerm, filters]);
+
+  // Handle load more
+  const handleLoadMore = () => {
+    setDisplayCount(prev => prev + ITEMS_PER_PAGE);
+  };
+
+  // Get the current page of laureates
+  const displayedLaureates = filteredAndSortedLaureates.slice(0, displayCount);
+  const hasMore = displayCount < filteredAndSortedLaureates.length;
+
+  if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
         <CircularProgress />
@@ -188,7 +187,7 @@ const Laureates = () => {
         <Alert 
           severity="error" 
           action={
-            <Button color="inherit" size="small" onClick={() => loadLaureates(true)}>
+            <Button color="inherit" size="small" onClick={loadAllLaureates}>
               Retry
             </Button>
           }
@@ -199,7 +198,7 @@ const Laureates = () => {
 
       {viewMode === 'grid' ? (
         <Grid container spacing={3}>
-          {filteredAndSortedLaureates.map(laureate => (
+          {displayedLaureates.map(laureate => (
             <Grid item xs={12} sm={6} md={4} key={laureate.id}>
               <LaureateCard 
                 laureate={laureate}
@@ -210,7 +209,7 @@ const Laureates = () => {
         </Grid>
       ) : (
         <List sx={{ bgcolor: 'background.paper' }}>
-          {filteredAndSortedLaureates.map(laureate => (
+          {displayedLaureates.map(laureate => (
             <LaureateListItem
               key={laureate.id}
               laureate={laureate}
@@ -253,16 +252,14 @@ const Laureates = () => {
         </Box>
       )}
 
-      {loading && !isInitialLoad && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-          <CircularProgress />
-        </Box>
-      )}
-
-      {hasMore && !loading && filteredAndSortedLaureates.length > 0 && (
+      {hasMore && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-          <Button variant="outlined" onClick={handleLoadMore}>
-            Load More
+          <Button 
+            variant="outlined" 
+            onClick={handleLoadMore}
+            sx={{ minWidth: 200 }}
+          >
+            Load More ({filteredAndSortedLaureates.length - displayCount} remaining)
           </Button>
         </Box>
       )}
