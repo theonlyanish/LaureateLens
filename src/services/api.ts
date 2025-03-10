@@ -39,6 +39,7 @@ export interface NobelPrize {
   motivation: {
     en: string;
   };
+  affiliations?: Affiliation[];
 }
 
 export interface Affiliation {

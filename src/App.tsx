@@ -6,13 +6,15 @@ import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import Header from './components/Header';
 import Laureates from './components/Laureates';
+import ChartView from './components/ChartView';
 
 // Nobel Prize colors
 const nobelColors = {
   gold: '#C19B6C',
   blue: '#003087',
   lightGold: '#D4B88C',
-  lightBlue: '#1A4FA3',
+  lightBlue: '#4B9FE1',
+  darkModeBlue: '#63B8FF',
 };
 
 function App() {
@@ -24,8 +26,8 @@ function App() {
         palette: {
           mode: isDarkMode ? 'dark' : 'light',
           primary: {
-            main: nobelColors.blue,
-            light: nobelColors.lightBlue,
+            main: isDarkMode ? nobelColors.lightBlue : nobelColors.blue,
+            light: isDarkMode ? nobelColors.darkModeBlue : nobelColors.lightBlue,
           },
           secondary: {
             main: nobelColors.gold,
@@ -95,7 +97,7 @@ function App() {
             minHeight: '100vh', 
             bgcolor: 'background.default',
             background: isDarkMode 
-              ? `linear-gradient(45deg, ${nobelColors.blue}15, ${nobelColors.gold}15)`
+              ? `linear-gradient(45deg, ${nobelColors.darkModeBlue}15, ${nobelColors.gold}15)`
               : `linear-gradient(45deg, ${nobelColors.blue}08, ${nobelColors.gold}08)`,
           }}
         >
@@ -106,7 +108,7 @@ function App() {
           <Container maxWidth="lg" sx={{ py: 3 }}>
             <Routes>
               <Route path="/" element={<Laureates />} />
-              <Route path="/charts" element={<div>Charts page coming soon!</div>} />
+              <Route path="/charts" element={<ChartView />} />
             </Routes>
           </Container>
         </Box>

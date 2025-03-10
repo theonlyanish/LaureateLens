@@ -6,7 +6,6 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
-import Divider from '@mui/material/Divider';
 import Link from '@mui/material/Link';
 import Grid from '@mui/material/Grid';
 import CloseIcon from '@mui/icons-material/Close';
@@ -16,6 +15,7 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import SchoolIcon from '@mui/icons-material/School';
 import LinkIcon from '@mui/icons-material/Link';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 
 interface LaureateDialogProps {
   laureate: Laureate | null;
@@ -75,30 +75,44 @@ const LaureateDialog = ({ laureate, onClose }: LaureateDialogProps) => {
       fullWidth
       scroll="paper"
     >
-      <DialogTitle sx={{ p: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <Box>
-            <Typography variant="h5" component="h2" gutterBottom>
-              {laureate.knownName?.en}
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              {laureate.nobelPrizes.map((prize, index) => (
-                <Chip 
-                  key={index}
-                  label={`${prize.category?.en} (${prize.awardYear})`}
-                  color="primary"
-                  size="small"
-                />
-              ))}
-            </Box>
-          </Box>
-          <IconButton onClick={onClose} sx={{ ml: 2 }}>
-            <CloseIcon />
-          </IconButton>
-        </Box>
+      <DialogTitle 
+        sx={{ 
+          p: 3, 
+          textAlign: 'center', 
+          position: 'relative',
+          pb: 0 // Reduce bottom padding since we're moving content out
+        }}
+      >
+        <IconButton 
+          onClick={onClose} 
+          sx={{ 
+            position: 'absolute',
+            right: 8,
+            top: 8,
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
       </DialogTitle>
 
       <DialogContent sx={{ p: 3 }}>
+        {/* Header Section */}
+        <Box sx={{ textAlign: 'center', mb: 4 }}>
+          <Typography variant="h4" gutterBottom>
+            {laureate.knownName?.en}
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap' }}>
+            {laureate.nobelPrizes.map((prize, index) => (
+              <Chip 
+                key={index}
+                label={`${prize.category?.en} (${prize.awardYear})`}
+                color="primary"
+                size="small"
+              />
+            ))}
+          </Box>
+        </Box>
+
         <Grid container spacing={3}>
           {/* Biographical Information */}
           <Grid item xs={12} md={6}>
@@ -107,16 +121,6 @@ const LaureateDialog = ({ laureate, onClose }: LaureateDialogProps) => {
             </Typography>
             
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {/* Full Name */}
-              <Box>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Full Name
-                </Typography>
-                <Typography>
-                  {`${laureate.givenName?.en}${laureate.familyName?.en ? ` ${laureate.familyName.en}` : ''}`}
-                </Typography>
-              </Box>
-
               {/* Birth Information */}
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <CakeIcon color="action" fontSize="small" />
@@ -140,7 +144,7 @@ const LaureateDialog = ({ laureate, onClose }: LaureateDialogProps) => {
               {/* Death Information */}
               {laureate.death && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CakeIcon color="action" fontSize="small" />
+                  <HourglassEmptyIcon color="action" fontSize="small" />
                   <Box>
                     <Typography variant="subtitle2" color="text.secondary">
                       Death
@@ -177,6 +181,17 @@ const LaureateDialog = ({ laureate, onClose }: LaureateDialogProps) => {
                         Wikipedia
                       </Link>
                     )}
+                    {laureate.wikidata?.url && (
+                      <Link 
+                        href={laureate.wikidata.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+                      >
+                        <LinkIcon fontSize="small" />
+                        Wikidata
+                      </Link>
+                    )}
                   </Box>
                 </Box>
               )}
@@ -208,20 +223,36 @@ const LaureateDialog = ({ laureate, onClose }: LaureateDialogProps) => {
                       {capitalizeFirstLetter(prize.motivation.en)}
                     </Typography>
                   )}
-
-                  {laureate.affiliations?.[index] && (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <LocationOnIcon fontSize="small" color="action" />
-                      <Typography variant="body2" color="text.secondary">
-                        {laureate.affiliations[index].name?.en}
-                        {laureate.affiliations[index].country?.en && 
-                          ` (${laureate.affiliations[index].country.en})`}
-                      </Typography>
-                    </Box>
-                  )}
                 </Box>
               ))}
             </Box>
+
+            {/* Affiliations Section */}
+            {laureate.affiliations && laureate.affiliations.length > 0 && (
+              <Box sx={{ mt: 4 }}>
+                <Typography variant="subtitle1" gutterBottom sx={{ color: 'text.primary' }}>
+                  Affiliations
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {laureate.affiliations.map((affiliation, index) => (
+                    <Box key={index} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                      <SchoolIcon fontSize="small" color="action" sx={{ mt: 0.5 }} />
+                      <Box>
+                        <Typography variant="body2">
+                          {affiliation.name?.en}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {[
+                            affiliation.city?.en,
+                            affiliation.country?.en
+                          ].filter(Boolean).join(', ')}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+            )}
           </Grid>
         </Grid>
       </DialogContent>
