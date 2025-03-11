@@ -7,6 +7,7 @@ import Container from '@mui/material/Container';
 import Header from './components/Header';
 import Laureates from './components/Laureates';
 import ChartView from './components/ChartView';
+import LoadingOverlay from './components/LoadingOverlay';
 
 // Nobel Prize colors
 const nobelColors = {
@@ -89,9 +90,10 @@ function App() {
   );
 
   return (
-    <Router>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <LoadingOverlay />
+      <Router>
         <Box 
           sx={{ 
             minHeight: '100vh', 
@@ -112,8 +114,8 @@ function App() {
             </Routes>
           </Container>
         </Box>
-      </ThemeProvider>
-    </Router>
+      </Router>
+    </ThemeProvider>
   );
 }
 

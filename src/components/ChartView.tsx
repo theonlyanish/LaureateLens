@@ -31,7 +31,10 @@ import {
   ResponsiveContainer,
   ScatterChart,
   Scatter,
-  Rectangle
+  Rectangle,
+  Area,
+  ComposedChart,
+  Label
 } from 'recharts';
 
 // GeoJSON URL for world map
@@ -81,10 +84,12 @@ type ChartType = 'timeline' | 'world' | 'age' | 'shared' | 'institutions';
 const ChartView = () => {
   const theme = useTheme();
   const [selectedChart, setSelectedChart] = useState<ChartType>('timeline');
+  const [ageViewMode, setAgeViewMode] = useState<'category' | 'gender'>('category');
   const [laureates, setLaureates] = useState<Laureate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tooltipContent, setTooltipContent] = useState<{ name: string; count: number } | null>(null);
+  const years = [1950, 1970, 1990, 2010];
 
   const loadAllLaureates = async () => {
     setLoading(true);
@@ -162,21 +167,38 @@ const ChartView = () => {
 
   // Process data for shared prizes
   const sharedPrizesData = useMemo(() => {
-    const categoryStats = new Map<string, { shared: number; individual: number }>();
+    // Create a map to group prizes by year and category
+    const prizeGroups = new Map<string, Map<string, Set<string>>>();
     
     laureates.forEach(laureate => {
       laureate.nobelPrizes.forEach(prize => {
         const category = prize.category?.en;
-        if (category && category !== 'Economic Sciences') {
-          const stats = categoryStats.get(category) || { shared: 0, individual: 0 };
-          if (prize.motivation?.en?.toLowerCase().includes('jointly')) {
-            stats.shared++;
-          } else {
-            stats.individual++;
+        const year = prize.awardYear;
+        
+        if (category && category !== 'Economic Sciences' && year) {
+          const yearKey = `${year}-${category}`;
+          if (!prizeGroups.has(yearKey)) {
+            prizeGroups.set(yearKey, new Map([['category', new Set([category])], ['laureates', new Set()]]));
           }
-          categoryStats.set(category, stats);
+          prizeGroups.get(yearKey)?.get('laureates')?.add(laureate.id);
         }
       });
+    });
+
+    // Convert the grouped data into category statistics
+    const categoryStats = new Map<string, { shared: number; individual: number }>();
+    
+    prizeGroups.forEach((groupData, yearKey) => {
+      const category = Array.from(groupData.get('category') || [])[0];
+      const laureateCount = groupData.get('laureates')?.size || 0;
+      
+      const stats = categoryStats.get(category) || { shared: 0, individual: 0 };
+      if (laureateCount > 1) {
+        stats.shared++;
+      } else {
+        stats.individual++;
+      }
+      categoryStats.set(category, stats);
     });
 
     return Array.from(categoryStats.entries())
@@ -218,6 +240,86 @@ const ChartView = () => {
     return Array.from(institutionCount.values())
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
+  }, [laureates]);
+
+  // Process data for age distribution by gender (population pyramid)
+  const genderAgeData = useMemo(() => {
+    // Create age ranges from 0 to 100+ in 5-year increments
+    const ageRanges = Array.from({ length: 21 }, (_, i) => ({ 
+      min: i * 5,
+      max: i * 5 + 4,
+      label: i === 20 ? '100+' : `${i * 5}-${i * 5 + 4}`
+    }));
+
+    // Initialize data structure by year
+    const yearData: { [year: number]: { [ageRange: string]: { male: number; female: number } } } = {};
+    const startYear = 1901;
+    const endYear = 2024;
+    const yearStep = Math.ceil((endYear - startYear) / 10); // Divide the range into ~10 periods
+
+    for (let year = startYear; year <= endYear; year += yearStep) {
+      yearData[year] = {};
+      ageRanges.forEach(({ label }) => {
+        yearData[year][label] = { male: 0, female: 0 };
+      });
+    }
+
+    // Process laureate data
+    laureates.forEach(laureate => {
+      if (laureate.birth?.date) {
+        laureate.nobelPrizes.forEach(prize => {
+          if (prize.awardYear) {
+            try {
+              const [birthYear] = laureate.birth.date.split('-').map(Number);
+              const awardYear = parseInt(prize.awardYear);
+              if (!isNaN(birthYear) && !isNaN(awardYear)) {
+                const age = awardYear - birthYear;
+                if (age >= 0 && age <= 100) {
+                  const ageRangeIndex = Math.min(Math.floor(age / 5), 20);
+                  const ageRange = ageRanges[ageRangeIndex].label;
+                  
+                  // Find the closest period
+                  const periodStart = Math.floor((awardYear - startYear) / yearStep) * yearStep + startYear;
+                  const year = Math.max(startYear, Math.min(endYear, periodStart));
+                  
+                  if (yearData[year] && yearData[year][ageRange]) {
+                    if (laureate.gender === 'male') {
+                      yearData[year][ageRange].male++;
+                    } else if (laureate.gender === 'female') {
+                      yearData[year][ageRange].female++;
+                    }
+                  }
+                }
+              }
+            } catch (e) {
+              // Skip invalid dates
+            }
+          }
+        });
+      }
+    });
+
+    // Transform data for the chart - create data points for each age range
+    return ageRanges.map(({ label }) => {
+      const dataPoint: any = { ageRange: label };
+      const years = Object.keys(yearData)
+        .map(Number)
+        .sort((a, b) => a - b);
+      
+      years.forEach((year, index) => {
+        // For males, make counts negative and use reversed year mapping
+        dataPoint[`male${year}`] = {
+          count: -yearData[year][label].male,
+          yearPosition: -(year - 1901) // This will be used for positioning
+        };
+        // For females, use normal year mapping
+        dataPoint[`female${year}`] = {
+          count: yearData[year][label].female,
+          yearPosition: (year - 1901) // This will be used for positioning
+        };
+      });
+      return dataPoint;
+    }).reverse();
   }, [laureates]);
 
   const renderChart = () => {
@@ -337,62 +439,177 @@ const ChartView = () => {
       case 'age':
         return (
           <Paper sx={{ p: 3 }}>
+            <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
+              <ToggleButtonGroup
+                value={ageViewMode}
+                exclusive
+                onChange={(_, value) => value && setAgeViewMode(value)}
+                size="small"
+              >
+                <ToggleButton value="category">By Category</ToggleButton>
+                <ToggleButton value="gender">By Gender</ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
             <Typography variant="h6" gutterBottom align="center">
-              Age Distribution by Category
+              {ageViewMode === 'category' ? 'Age Distribution by Category' : 'Age Distribution by Gender'}
             </Typography>
             <Box sx={{ height: 500 }}>
               <ResponsiveContainer>
-                <BarChart
-                  data={ageData}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="category" 
-                    angle={-45}
-                    textAnchor="end"
-                    interval={0}
-                    height={60}
-                  />
-                  <YAxis 
-                    domain={[20, 100]}
-                    label={{ value: 'Age', angle: -90, position: 'insideLeft' }}
-                  />
-                  <Tooltip 
-                    content={({ payload }) => {
-                      if (!payload?.[0]?.payload) return null;
-                      const data = payload[0].payload;
-                      return (
-                        <Paper sx={{ p: 1 }}>
-                          <Typography variant="subtitle2">{data.category}</Typography>
-                          <Typography variant="body2">Median Age: {data.median}</Typography>
-                          <Typography variant="body2">Range: {data.min}-{data.max}</Typography>
-                          <Typography variant="body2">Interquartile Range: {data.q1}-{data.q3}</Typography>
-                          <Typography variant="body2">Sample Size: {data.count}</Typography>
-                        </Paper>
-                      );
-                    }}
-                  />
-                  <Legend />
-                  <Bar 
-                    dataKey="median" 
-                    name="Median Age" 
-                    fill={theme.palette.primary.main}
-                    isAnimationActive={false}
-                  />
-                  <Bar 
-                    dataKey="min" 
-                    name="Min Age" 
-                    fill={theme.palette.grey[400]}
-                    isAnimationActive={false}
-                  />
-                  <Bar 
-                    dataKey="max" 
-                    name="Max Age" 
-                    fill={theme.palette.grey[600]}
-                    isAnimationActive={false}
-                  />
-                </BarChart>
+                {ageViewMode === 'category' ? (
+                  <BarChart
+                    data={ageData}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey="category" 
+                      angle={-45}
+                      textAnchor="end"
+                      interval={0}
+                      height={60}
+                    />
+                    <YAxis 
+                      domain={[20, 100]}
+                      label={{ value: 'Age', angle: -90, position: 'insideLeft' }}
+                    />
+                    <Tooltip 
+                      content={({ payload }) => {
+                        if (!payload?.[0]?.payload) return null;
+                        const data = payload[0].payload;
+                        return (
+                          <Paper sx={{ p: 1 }}>
+                            <Typography variant="subtitle2">{data.category}</Typography>
+                            <Typography variant="body2">Median Age: {data.median}</Typography>
+                            <Typography variant="body2">Range: {data.min}-{data.max}</Typography>
+                            <Typography variant="body2">Interquartile Range: {data.q1}-{data.q3}</Typography>
+                            <Typography variant="body2">Sample Size: {data.count}</Typography>
+                          </Paper>
+                        );
+                      }}
+                    />
+                    <Legend />
+                    <Bar 
+                      dataKey="median" 
+                      name="Median Age" 
+                      fill={theme.palette.primary.main}
+                      isAnimationActive={false}
+                    />
+                    <Bar 
+                      dataKey="min" 
+                      name="Min Age" 
+                      fill={theme.palette.grey[400]}
+                      isAnimationActive={false}
+                    />
+                    <Bar 
+                      dataKey="max" 
+                      name="Max Age" 
+                      fill={theme.palette.grey[600]}
+                      isAnimationActive={false}
+                    />
+                  </BarChart>
+                ) : (
+                  <ComposedChart
+                    data={genderAgeData}
+                    margin={{ top: 40, right: 30, left: 80, bottom: 40 }}
+                    layout="vertical"
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      xAxisId="count"
+                      type="number"
+                      domain={[-50, 50]}
+                      tickFormatter={(value) => Math.abs(value).toString()}
+                      orientation="top"
+                    >
+                      <Label value="Number of Laureates" position="top" />
+                    </XAxis>
+                    <XAxis
+                      xAxisId="year"
+                      type="number"
+                      domain={[-123, 123]} // 123 years from 1901 to 2024
+                      orientation="bottom"
+                      tickFormatter={(value) => (Math.abs(value) + 1901).toString()}
+                      ticks={[-120, -90, -60, -30, 0, 30, 60, 90, 120]}
+                    >
+                      <Label value="Year" position="bottom" />
+                    </XAxis>
+                    <YAxis 
+                      dataKey="ageRange" 
+                      type="category"
+                      width={60}
+                    >
+                      <Label value="Age Range" angle={-90} position="insideLeft" />
+                    </YAxis>
+                    <Tooltip
+                      content={({ payload }) => {
+                        if (!payload?.[0]) return null;
+                        const data = payload[0].payload;
+                        
+                        // Extract year from the active data point
+                        const activeKey = payload[0].name?.toString() || '';
+                        const yearMatch = activeKey.match(/\d+/);
+                        const year = yearMatch ? parseInt(yearMatch[0]) : 
+                                  (activeKey === "Male" || activeKey === "Female" ? 
+                                   parseInt(Object.keys(data)
+                                    .find(key => key.startsWith(activeKey.toLowerCase()))
+                                    ?.match(/\d+/)?.[0] || '0') : null);
+                        
+                        if (!year) return null;
+                        
+                        return (
+                          <Paper sx={{ p: 1 }}>
+                            <Typography variant="subtitle2">{data.ageRange} years</Typography>
+                            <Typography variant="body2" sx={{ color: theme.palette.primary.main }}>
+                              Male: {Math.abs(data[`male${year}`]?.count || 0)}
+                            </Typography>
+                            <Typography variant="body2" sx={{ color: theme.palette.secondary.main }}>
+                              Female: {data[`female${year}`]?.count || 0}
+                            </Typography>
+                          </Paper>
+                        );
+                      }}
+                    />
+                    <Legend 
+                      wrapperStyle={{
+                        paddingTop: '20px'
+                      }}
+                    />
+                    {Object.keys(genderAgeData[0] || {})
+                      .filter(key => key !== 'ageRange')
+                      .map(key => parseInt(key.match(/\d+/)?.[0] || '0'))
+                      .filter(year => !isNaN(year))
+                      .sort((a, b) => b - a)
+                      .map((year, index) => {
+                        const opacity = 0.2 + (index * 0.07);
+                        return [
+                          <Area
+                            key={`male${year}`}
+                            type="monotone"
+                            dataKey={`male${year}.count`}
+                            name="Male"
+                            fill={theme.palette.primary.main}
+                            stroke={theme.palette.primary.main}
+                            fillOpacity={opacity}
+                            stackId="1"
+                            xAxisId="count"
+                            legendType={index === 0 ? "line" : "none"}
+                          />,
+                          <Area
+                            key={`female${year}`}
+                            type="monotone"
+                            dataKey={`female${year}.count`}
+                            name="Female"
+                            fill={theme.palette.secondary.main}
+                            stroke={theme.palette.secondary.main}
+                            fillOpacity={opacity}
+                            stackId="2"
+                            xAxisId="count"
+                            legendType={index === 0 ? "line" : "none"}
+                          />
+                        ];
+                      }).flat()}
+                  </ComposedChart>
+                )}
               </ResponsiveContainer>
             </Box>
           </Paper>
@@ -404,10 +621,13 @@ const ChartView = () => {
             <Typography variant="h6" gutterBottom align="center">
               Shared vs Individual Prizes by Category
             </Typography>
+            <Typography variant="caption" color="text.secondary" align="center" display="block" sx={{ mb: 2 }}>
+              Note: Figures may be approximate due to pending data cleaning and normalization
+            </Typography>
             <Box sx={{ height: 500 }}>
               <ResponsiveContainer>
                 <BarChart
-                  data={sharedPrizesData}
+                  data={sharedPrizesData}   
                   margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
@@ -434,6 +654,9 @@ const ChartView = () => {
           <Paper sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom align="center">
               Top 10 Institutions by Nobel Laureates
+            </Typography>
+            <Typography variant="caption" color="text.secondary" align="center" display="block" sx={{ mb: 2 }}>
+              Note: Institution counts may vary due to historical name changes and affiliations requiring further data cleaning
             </Typography>
             <Box sx={{ height: 500 }}>
               <ResponsiveContainer>
