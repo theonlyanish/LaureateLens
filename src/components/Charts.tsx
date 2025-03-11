@@ -12,14 +12,14 @@ interface ChartsProps {
   laureates: Laureate[];
 }
 
-interface CategoryCount {
-  period: string;
-  Physics: number;
-  Chemistry: number;
-  'Physiology or Medicine': number;
-  Literature: number;
-  Peace: number;
-}
+// interface CategoryCount {
+//   period: string;
+//   Physics: number;
+//   Chemistry: number;
+//   'Physiology or Medicine': number;
+//   Literature: number;
+//   Peace: number;
+// }
 
 type ViewMode = 'decades' | 'years';
 
