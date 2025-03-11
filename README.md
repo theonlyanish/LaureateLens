@@ -14,9 +14,10 @@ LaureateLens is an elegant web application designed to illuminate the achievemen
 ## Tech Stack
 
 - **Frontend Framework**: React with TypeScript
-- **Styling**: 
+- **Styling & Animations**: 
   - Material-UI (MUI) for component library
   - CSS Modules for component-specific styling
+  - Custom keyframe animations for overlay effects
   - Tailwind CSS for utility classes
 - **Routing**: React Router for navigation
 - **Data Visualization**: Recharts for charts
@@ -34,6 +35,11 @@ LaureateLens is an elegant web application designed to illuminate the achievemen
   - Light Gold: #D4B88C
   - Light Blue: #4B9FE1
   - Dark Mode Blue: #63B8FF
+- **Animations**:
+  - Smooth entry animations with cubic-bezier
+  - Staggered text reveal effects
+  - Interactive hover states on cards
+  - Seamless theme transitions
 
 ## Getting Started
 
