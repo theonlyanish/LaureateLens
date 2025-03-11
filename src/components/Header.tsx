@@ -68,16 +68,10 @@ const Header = ({ toggleDarkMode, isDarkMode }: HeaderProps) => {
             component={Link}
             to="/"
             sx={{ 
-              fontFamily: '"Cormorant Garamond", serif',
+               fontFamily: '"Cormorant Garamond", serif',
               fontWeight: 600,
               textDecoration: 'none',
-              background: theme.palette.mode === 'dark'
-                ? 'linear-gradient(45deg, #4B9FE1 30%, #63B8FF 90%)'
-                : 'linear-gradient(45deg, #1A4FA3 30%, #4B9FE1 90%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              textFillColor: 'transparent',
+              color: theme.palette.mode === 'dark' ? '#4B9FE1' : '#000000',
               letterSpacing: '0.5px',
               fontSize: '1.8rem',
             }}
