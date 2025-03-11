@@ -1,61 +1,79 @@
-# Front-End Developer Technical Challenge (React)
+# LaureateLens: Exploring Nobel Brilliance
 
-## 🎯 Objective
+LaureateLens is an elegant web application designed to illuminate the achievements of Nobel Prize laureates through an intuitive and visually engaging interface.
 
-This technical challenge is designed to assess your React development skills, including:
+## Features
 
-- Component structuring
-- State management
-- API integration
-- UI/UX considerations
+- **Elegant Entry Animation**: A sophisticated welcome animation introduces users to the site
+- **Responsive Design**: Seamlessly adapts to all device sizes
+- **Dark/Light Mode**: Toggle between carefully crafted dark and light themes
+- **Nobel Prize Data Visualization**: Interactive charts and visualizations of Nobel Prize data
+- **Laureate Exploration**: Browse and discover Nobel Prize laureates with detailed information
+- **Modern UI**: Built with Material-UI components enhanced with custom animations and styling
 
-## 🚀 Challenge Overview
+## Tech Stack
 
-Build a React application that interacts with user data from an external API. The application should provide the following features:
+- **Frontend Framework**: React with TypeScript
+- **Styling**: 
+  - Material-UI (MUI) for component library
+  - CSS Modules for component-specific styling
+  - Tailwind CSS for utility classes
+- **Routing**: React Router for navigation
+- **Data Visualization**: Recharts for charts
+- **Maps**: React Simple Maps for geographical data visualization
 
-### Core Features
+## Design Elements
 
-- 📋 Fetch and display users from [JSONPlaceholder API](https://jsonplaceholder.typicode.com/users)
-- 🔍 Search functionality to filter users by name
-- ⚡ Sort users by name or email
-- 🔄 Refresh button to reload data
-- 📱 Responsive design for both desktop and mobile
+- **Typography**:
+  - Headers: Playfair Display for elegant headings
+  - Body: Crimson Text for readable content
+  - UI Elements: System font stack for crisp interface elements
+- **Color Palette**:
+  - Primary Blue: #003087
+  - Gold Accent: #C19B6C
+  - Light Gold: #D4B88C
+  - Light Blue: #4B9FE1
+  - Dark Mode Blue: #63B8FF
 
-## 🛠️ Technical Requirements
+## Getting Started
 
-### Technology Stack
+1. Clone the repository
+```bash
+git clone [repository-url]
+```
 
-- **Framework:** React
-- **Component Style:** Functional components with React Hooks
-- **Data Fetching:** Fetch API or Axios
-- **State Management:** React state or Context API
-- **Styling:** CSS, Tailwind, or any preferred UI framework
+2. Install dependencies
+```bash
+npm install
+```
 
-### Development Guidelines
+3. Start the development server
+```bash
+npm run dev
+```
 
-- ✨ Write clean, maintainable, and modular code
-- 🎯 Implement proper error handling
-- 📝 Include loading states
+## Development
 
-## 📤 Submission Requirements
+- **Build**: `npm run build`
+- **Lint**: `npm run lint`
+- **Preview**: `npm run preview`
 
-1. **Repository Setup**
+## Project Structure
 
-   - Fork this repository to your GitHub account
-   - Clone your forked repository locally
-   - Do NOT submit pull requests to the original repository
+```
+src/
+├── components/     # React components
+├── hooks/         # Custom React hooks
+├── services/      # API and data services
+├── utils/         # Utility functions
+├── styles/        # Global styles
+└── assets/        # Static assets
+```
 
-2. **Time Limit**
+## Contributing
 
-   - You have 4 hours to complete the challenge
-   - Start timing from when you begin the implementation
-   - Push your completed work to your forked repository when finished
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-3. **Completion Notice**
-   - After pushing your implementation
-   - Notify the reviewing team that you've completed the task
-   - Include your forked repository URL in the notification
+## License
 
-## 🤝 Good Luck!
-
-We look forward to seeing your creative solution to this challenge. If you have any questions, please don't hesitate to ask.
+This project is licensed under the MIT License - see the LICENSE file for details.
