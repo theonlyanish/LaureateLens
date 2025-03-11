@@ -20,6 +20,7 @@ const nobelColors = {
 
 function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isOverlayDismissed, setIsOverlayDismissed] = useState(false);
 
   const theme = useMemo(
     () =>
@@ -92,7 +93,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <LoadingOverlay />
+      <LoadingOverlay onDismiss={() => setIsOverlayDismissed(true)} />
       <Router>
         <Box 
           sx={{ 
@@ -109,7 +110,7 @@ function App() {
           />
           <Container maxWidth="lg" sx={{ py: 3 }}>
             <Routes>
-              <Route path="/" element={<Laureates />} />
+              <Route path="/" element={<Laureates overlayDismissed={isOverlayDismissed} />} />
               <Route path="/charts" element={<ChartView />} />
             </Routes>
           </Container>

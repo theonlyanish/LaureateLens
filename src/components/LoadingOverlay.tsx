@@ -1,7 +1,11 @@
 import React, { useState, useCallback } from 'react';
 import styles from './LoadingOverlay.module.css';
 
-const LoadingOverlay: React.FC = () => {
+interface LoadingOverlayProps {
+  onDismiss?: () => void;
+}
+
+const LoadingOverlay: React.FC<LoadingOverlayProps> = ({ onDismiss }) => {
   const [isVisible, setIsVisible] = useState(true);
   const [isExiting, setIsExiting] = useState(false);
   const words = ['LaureateLens', ':', 'Exploring', 'Brilliance', 'Across', 'the', 'Ages'];
@@ -11,8 +15,9 @@ const LoadingOverlay: React.FC = () => {
     const totalDuration = (words.length - 1) * 100 + 800; // Last animation duration + delays
     setTimeout(() => {
       setIsVisible(false);
+      onDismiss?.();
     }, totalDuration);
-  }, [words.length]);
+  }, [words.length, onDismiss]);
 
   if (!isVisible) return null;
 

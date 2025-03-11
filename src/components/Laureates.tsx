@@ -12,10 +12,17 @@ import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
+import { animated, useSpring, useTrail, config } from '@react-spring/web';
 
 const ITEMS_PER_PAGE = 24; // Adjust for better grid layout (4x6)
 
-const Laureates = () => {
+interface LaureatesProps {
+  overlayDismissed: boolean;
+}
+
+const AnimatedGrid = animated(Grid);
+
+const Laureates = ({ overlayDismissed }: LaureatesProps) => {
   const [allLaureates, setAllLaureates] = useState<Laureate[]>([]);
   const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE);
   const [loading, setLoading] = useState(true);
@@ -161,6 +168,12 @@ const Laureates = () => {
   const displayedLaureates = filteredAndSortedLaureates.slice(0, displayCount);
   const hasMore = displayCount < filteredAndSortedLaureates.length;
 
+  const trail = useTrail(displayedLaureates.length, {
+    from: { opacity: 0, transform: 'translateY(20px)' },
+    to: { opacity: overlayDismissed ? 1 : 0, transform: overlayDismissed ? 'translateY(0px)' : 'translateY(20px)' },
+    config: { mass: 1, tension: 280, friction: 20 },
+  });
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
@@ -198,13 +211,13 @@ const Laureates = () => {
 
       {viewMode === 'grid' ? (
         <Grid container spacing={3}>
-          {displayedLaureates.map(laureate => (
-            <Grid item xs={12} sm={6} md={4} key={laureate.id}>
+          {trail.map((styles, index) => (
+            <AnimatedGrid item xs={12} sm={6} md={4} key={displayedLaureates[index].id} style={styles}>
               <LaureateCard 
-                laureate={laureate}
+                laureate={displayedLaureates[index]}
                 onSelect={(laureate) => setSelectedLaureate(laureate)}
               />
-            </Grid>
+            </AnimatedGrid>
           ))}
         </Grid>
       ) : (
