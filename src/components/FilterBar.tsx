@@ -14,7 +14,6 @@ import ButtonGroup from '@mui/material/ButtonGroup';
 import Chip from '@mui/material/Chip';
 import Autocomplete from '@mui/material/Autocomplete';
 import Collapse from '@mui/material/Collapse';
-import Divider from '@mui/material/Divider';
 import GridViewIcon from '@mui/icons-material/GridView';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';

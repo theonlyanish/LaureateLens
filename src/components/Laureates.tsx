@@ -12,7 +12,7 @@ import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
-import { animated, useSpring, useTrail, config } from '@react-spring/web';
+import { animated, useTrail } from '@react-spring/web';
 
 const ITEMS_PER_PAGE = 24; // Adjust for better grid layout (4x6)
 

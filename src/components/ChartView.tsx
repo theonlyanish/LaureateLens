@@ -29,9 +29,6 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  ScatterChart,
-  Scatter,
-  Rectangle,
   Area,
   ComposedChart,
   Label
@@ -74,10 +71,7 @@ const countryNameMapping: { [key: string]: string } = {
   "Hungary": "Hungary"
 };
 
-interface CountryCount {
-  name: string;
-  count: number;
-}
+
 
 type ChartType = 'timeline' | 'world' | 'age' | 'shared' | 'institutions';
 
@@ -89,7 +83,7 @@ const ChartView = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tooltipContent, setTooltipContent] = useState<{ name: string; count: number } | null>(null);
-  const years = [1950, 1970, 1990, 2010];
+
 
   const loadAllLaureates = async () => {
     setLoading(true);
@@ -188,7 +182,7 @@ const ChartView = () => {
     // Convert the grouped data into category statistics
     const categoryStats = new Map<string, { shared: number; individual: number }>();
     
-    prizeGroups.forEach((groupData, yearKey) => {
+    prizeGroups.forEach((groupData) => {
       const category = Array.from(groupData.get('category') || [])[0];
       const laureateCount = groupData.get('laureates')?.size || 0;
       
@@ -306,7 +300,7 @@ const ChartView = () => {
         .map(Number)
         .sort((a, b) => a - b);
       
-      years.forEach((year, index) => {
+      years.forEach((year) => {
         // For males, make counts negative and use reversed year mapping
         dataPoint[`male${year}`] = {
           count: -yearData[year][label].male,
@@ -425,7 +419,7 @@ const ChartView = () => {
               </Box>
               <Box sx={{ flex: 1, overflowY: 'auto', pl: 2 }}>
                 <Typography variant="subtitle2" gutterBottom>Top Countries</Typography>
-                {countryData.slice(0, 10).map((country, index) => (
+                {countryData.slice(0, 10).map((country) => (
                   <Box key={country.name} sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                     <Typography variant="body2">{country.name}</Typography>
                     <Typography variant="body2" color="primary">{country.count}</Typography>
