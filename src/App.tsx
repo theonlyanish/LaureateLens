@@ -114,6 +114,43 @@ function App() {
               <Route path="/charts" element={<ChartView />} />
             </Routes>
           </Container>
+          
+          {/* Attribution Footer */}
+          <Box 
+            component="footer" 
+            sx={{ 
+              textAlign: 'center', 
+              py: 2, 
+              borderTop: 1, 
+              borderColor: 'divider',
+              mt: 'auto',
+              bgcolor: isDarkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'
+            }}
+          >
+            <p style={{ margin: 0, fontSize: '0.875rem', color: isDarkMode ? '#a0a0a0' : '#666' }}>
+              LaureateLens by{' '}
+              <a
+                href="https://anishkapse.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  color: isDarkMode ? '#63B8FF' : '#da4167',
+                  textDecoration: 'none',
+                  transition: 'color 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.textDecoration = 'underline';
+                  e.currentTarget.style.textDecorationThickness = '2px';
+                  e.currentTarget.style.textUnderlineOffset = '2px';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.textDecoration = 'none';
+                }}
+              >
+                Anish Kapse
+              </a>
+            </p>
+          </Box>
         </Box>
       </Router>
     </ThemeProvider>
