@@ -127,29 +127,31 @@ function App() {
               bgcolor: isDarkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'
             }}
           >
-            <p style={{ margin: 0, fontSize: '0.875rem', color: isDarkMode ? '#a0a0a0' : '#666' }}>
-              LaureateLens by{' '}
-              <a
-                href="https://anishkapse.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  color: isDarkMode ? '#63B8FF' : '#da4167',
-                  textDecoration: 'none',
-                  transition: 'color 0.2s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.textDecoration = 'underline';
-                  e.currentTarget.style.textDecorationThickness = '2px';
-                  e.currentTarget.style.textUnderlineOffset = '2px';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.textDecoration = 'none';
-                }}
-              >
-                Anish Kapse
-              </a>
-            </p>
+                          <p style={{ margin: 0, fontSize: '0.875rem', color: isDarkMode ? '#a0a0a0' : '#666' }}>
+                LaureateLens by{' '}
+                <a
+                  href="https://anishkapse.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    color: isDarkMode ? '#a0a0a0' : '#666',
+                    textDecoration: 'none',
+                    transition: 'color 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = isDarkMode ? '#63B8FF' : '#da4167';
+                    e.currentTarget.style.textDecoration = 'underline';
+                    e.currentTarget.style.textDecorationThickness = '2px';
+                    e.currentTarget.style.textUnderlineOffset = '2px';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = isDarkMode ? '#a0a0a0' : '#666';
+                    e.currentTarget.style.textDecoration = 'none';
+                  }}
+                >
+                  Anish Kapse
+                </a>
+              </p>
           </Box>
         </Box>
       </Router>
