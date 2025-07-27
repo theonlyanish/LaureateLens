@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  
+  <!-- Home Page -->
+  <url>
+    <loc>https://laureatelens.vercel.app/</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://laureatelens.vercel.app/Nobel_Prize.png</image:loc>
+      <image:title>LaureateLens - Nobel Prize Laureates Explorer</image:title>
+      <image:caption>Interactive platform for exploring Nobel Prize laureates and their achievements</image:caption>
+    </image:image>
+  </url>
+  
+  <!-- Laureates Listing Page -->
+  <url>
+    <loc>https://laureatelens.vercel.app/</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <!-- Charts/Data Visualization Page -->
+  <url>
+    <loc>https://laureatelens.com/charts</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+</urlset> 
