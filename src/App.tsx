@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Analytics, AnalyticsProps } from '@vercel/analytics/react';
-import type { Event } from '@vercel/analytics';
+import { Analytics } from '@vercel/analytics';
+import type { AnalyticsEvent } from '@vercel/analytics';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
@@ -159,14 +159,11 @@ function App() {
       </Router>
       {/* Vercel Analytics - tracks page views and other metrics */}
       <Analytics 
-        beforeSend={(event: Event) => {
-          // Optional: Modify or filter events before they're sent
-          // For example, you could add custom properties:
+        beforeSend={(event: AnalyticsEvent) => {
           return {
             ...event,
-            // Add any custom properties you want to track
             theme: isDarkMode ? 'dark' : 'light'
-          } as Event;
+          } as AnalyticsEvent;
         }}
       />
     </ThemeProvider>

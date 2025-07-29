@@ -16,6 +16,7 @@
     "@mui/material": "^6.4.5",
     "@react-spring/web": "^9.7.5",
     "@types/react-simple-maps": "^3.0.6",
+    "@vercel/analytics": "^1.2.2",
     "axios": "^1.7.9",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
